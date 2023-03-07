@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+
+<html lang="en-US">
+
+<head>
+  <title>Projects Tracker</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script type="module" defer>
+    import { App } from "/app.js";
+    import { createApp } from "https://unpkg.com/vue@3/dist/vue.esm-browser.js";
+    createApp(App).mount("#app");
+  </script>
+<style>
+#app {
+  margin: 0;
+  padding: 0;
+}
+
+#login-register-div {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+#login-register-div input {
+  font-size: 20px;
+  text-align: center;
+  margin: 2px;
+  padding: 2px;
+}
+
+#button-div {
+  margin: 2px auto;
+}
+
+#login-register-div button {
+  width: 50%;
+  font-size: 15px;
+  margin: auto;
+  padding: 2px;
+}
+
+#top-controls-div > * {
+  margin: 2px;
+}
+
+#part-popup {
+  display: none;
+  position: fixed;
+  bottom: 0;
+  right: 5px;
+  border: 3px solid black;
+  z-index: 9;
+}
+
+#part-form {
+  /* max-width: 600px; */
+  padding: 10px;
+}
+
+#part-form > * {
+  display: block;
+  width: 100%;
+}
+
+#part-form input, #part-form textarea {
+  margin: 5px 0 10px 0;
+  padding: 2px;
+  border: none;
+  background: #f1f1f1;
+}
+
+#part-form textarea {
+  resize: none;
+}
+</style>
+</head>
+
+<body>
+
+<div id="app">
+  <form id="login-register-div" v-if="sessionId == ''" @submit.prevent="sendCreds">
+    <input type="email" size="40" placeholder="Email" v-model="email" required></br>
+    <input type="password" size="40" placeholder="Password" v-model="password" required></br>
+    <div id="button-div">
+      <button type="submit" @click="loggingIn = true">Login</button>
+      <button type="submit" @click="loggingIn = false">Register</button>
+    </div>
+    <p style="text-align:center; color:red;">{{ errMsg }}</p>
+  </form>
+
+  <div id="main-div" v-else>
+    <h1 style="text-align:center">Hello, {{email}}</h1>
+    <div id="top-controls-div">
+      <button @click="newPartPopup">New Project</button>
+      <input type="text" placeholder="Search" disabled>
+      <button disabled>Sort</button>
+      <button disabled>Filter</button>
+    </div>
+    <ul v-if="projects.length">
+      <proj-part v-for="(proj, index) in projects" :part="proj" :key="index">
+      </proj-part>
+    </ul>
+    <p v-else>No projects</p>
+
+    <div id="part-popup" class="hidden">
+      <form id="part-form" @submit.prevent="newPart">
+        <label for="part-name">Name</label>
+        <input type="text" name="part-name" v-model="part.name" placeholder="Name" required>
+
+        <label for="part-desc">Description</label>
+        <textarea name="part-desc" placeholder="Description" rows="3"></textarea>
+
+        <label for="part-deadline">Deadline</label>
+        <input type="datetime-local" name="part-deadline" v-model="part.deadline">
+
+        <label for="part-comp-at">Completed At</label>
+        <input type="datetime-local" name="part-comp-at" v-model="part.completedAt">
+
+        <button type="submit" >Add</button>
+        <button type="button" @click="cancelNewPart">Cancel</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+</body>
+
+</html>

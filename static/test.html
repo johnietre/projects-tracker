@@ -1,0 +1,16 @@
+<template>
+  <li>
+    <details>
+      <summary></summary>
+      <ul v-if="part.subparts.length">
+          <proj-part
+            v-for="(subpart, index) in part.subparts"
+            :key="index"
+            :part="subpart"
+          >
+          </proj-part>
+        </div>
+      </ul>
+    </details>
+  </li>
+</template>

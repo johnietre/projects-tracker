@@ -1,0 +1,7 @@
+*.db
+bin
+server
+
+# Added by cargo
+
+/target

@@ -1,0 +1,43 @@
+type Part {
+  id: ID!
+  name: String!
+  description: String
+  "RFC3339 datetime"
+  deadline: String
+  "RFC3339 datetime"
+  completed_at: String
+  parent_id: ID
+}
+
+input CreatePartInput {
+  name: String!
+  description: String
+  "RFC3339 datetime"
+  deadline: String
+  "RFC3339 datetime"
+  completed_at: String
+  parent_id: ID
+}
+
+input CreateUserInput {
+  email: String!
+  password: String!
+}
+
+input LoginUserInput {
+  email: String!
+  password: String!
+}
+
+type Query {
+  parts: [Part!]!
+}
+
+scalar Map
+
+type Mutation {
+  createUser(input: CreateUserInput!): String!
+  loginUser(input: LoginUserInput!): String!
+  createPart(input: CreatePartInput!): Part!
+  updatePart(id: ID!, changes: Map!): Part!
+}
