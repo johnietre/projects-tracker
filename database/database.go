@@ -50,6 +50,14 @@ func NewDB(path string) (*DB, error) {
   if err != nil {
     return nil, err
   }
+  _, err = db.Exec(`CREATE TABLE IF NOT EXISTS users (
+    email TEXT PRIMARY KEY,
+    password_hash TEXT NOT NULL
+  )`)
+  if err != nil {
+    db.Close()
+    return nil, err
+  }
   return &DB{db: db}, nil
 }
 
