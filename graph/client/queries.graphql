@@ -1,0 +1,10 @@
+query PartsQuery {
+  parts {
+    id
+    name
+    description
+    deadline
+    completed_at
+    parent_id
+  }
+}

@@ -13,3 +13,7 @@ import (
 type Resolver struct{
   db *database.DB
 }
+
+func (r *Resolver) CloseDB() error {
+  return r.db.Close()
+}

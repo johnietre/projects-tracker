@@ -71,13 +71,13 @@ func (db *DB) Close() error {
 const createTableSql = `
 INSERT INTO users VALUES (?, ?);
 CREATE TABLE [%[1]s] (
-  part_id INTEGER PRIMARY KEY AUTOINCREMENT,
+  part_id INTEGER PRIMARY KEY,
   name TEXT NOT NULL,
   description TEXT,
   deadline TEXT,
   completed_at TEXT,
   parent_id INTEGER,
-  FOREIGN KEY(parent_id) REFERENCES ([%[1]s].part_id)
+  FOREIGN KEY(parent_id) REFERENCES [%[1]s](part_id)
 );
 `
 
@@ -259,20 +259,21 @@ func (db *DB) GetParts(email string) ([]*model.Part, error) {
   defer rows.Close()
   var parts []*model.Part
   for rows.Next() {
-    part, id, parentID := &model.Part{}, int64(0), int64(0)
+    part, id, parentID := &model.Part{}, int64(0), new(int64)
     e := rows.Scan(
       &id, &part.Name, &part.Description,
       &part.Deadline, &part.CompletedAt, &parentID,
     )
     if e != nil {
-      if err != nil {
+      fmt.Println(e)
+      if err == nil {
         err = e
       }
     } else {
       part.ID = strconv.FormatInt(id, 10)
-      if parentID != 0 {
+      if parentID != nil {
         part.ParentID = new(string)
-        *part.ParentID = strconv.FormatInt(parentID, 10)
+        *part.ParentID = strconv.FormatInt(*parentID, 10)
       }
       parts = append(parts, part)
     }

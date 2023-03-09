@@ -1,0 +1,21 @@
+mutation CreateUserMutation($input: CreateUserInput!) {
+  createUser(input: $input)
+}
+
+mutation LoginUserMutation($input: LoginUserInput!) {
+  loginUser(input: $input)
+}
+
+mutation CreatePartMutation($input: CreatePartInput!) {
+  createPart(input: $input) {
+    id
+    name
+  }
+}
+
+mutation UpdatePartMutation($input: Map!) {
+  updatePart(input: $input) {
+    id
+    name
+  }
+}
