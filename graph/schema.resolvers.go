@@ -57,33 +57,52 @@ func (r *mutationResolver) CreatePart(ctx context.Context, input model.CreatePar
 	}
 	part, err := r.db.CreatePart(user.Email, input)
 	if err != nil {
-    if !errors.As(err, &database.UserError{}) {
-      log.Printf("error creating part for %s (input: %s): %v", user.Email, input, err)
-      return nil, serverErr
-    }
+		if !errors.As(err, &database.UserError{}) {
+			log.Printf("error creating part for %s (input: %s): %v", user.Email, input, err)
+			return nil, serverErr
+		}
 	}
 	return part, nil
 }
 
 // UpdatePart is the resolver for the updatePart field.
 func (r *mutationResolver) UpdatePart(ctx context.Context, id string, changes map[string]interface{}) (*model.Part, error) {
-		user, ok := auth.UserFromContext(ctx)
-		if !ok {
-			return nil, fmt.Errorf("Access deined")
+	user, ok := auth.UserFromContext(ctx)
+	if !ok {
+		return nil, fmt.Errorf("Access deined")
+	}
+	part, err := r.db.UpdatePart(user.Email, id, changes)
+	if err != nil {
+		if !errors.As(err, &database.UserError{}) {
+			log.Printf(
+				"error updating part for %s (id: %s, input: %v): %v",
+				user.Email, id, changes, err,
+			)
+			err = serverErr
 		}
-		part, err := r.db.UpdatePart(user.Email, id, changes)
-		if err != nil {
-			if !errors.As(err, &database.UserError{}) {
-        log.Printf(
-          "error updating part for %s (id: %s, input: %v): %v",
-          user.Email, id, changes, err,
-        )
-				err = serverErr
-			}
-			return nil, err
-		}
-		return part, nil
+		return nil, err
+	}
+	return part, nil
 	return nil, nil
+}
+
+// DeletePart is the resolver for the deletePart field.
+func (r *mutationResolver) DeletePart(ctx context.Context, id string) (bool, error) {
+  user, ok := auth.UserFromContext(ctx)
+  if !ok {
+    return nil, fmt.Errorf("Access denied")
+  }
+  err := r.db.DeletePart(user.Email, id)
+  if err != nil {
+    if !errors.As(err, &database.UserError{}) {
+      log.Printf(
+        "error deleting part (id: %s) for %s: %v",
+        id, user.Email, err,
+      )
+      err = serverErr
+    }
+  }
+  return err == nil, err
 }
 
 // Parts is the resolver for the parts field.
@@ -94,10 +113,10 @@ func (r *queryResolver) Parts(ctx context.Context) ([]*model.Part, error) {
 	}
 	parts, err := r.db.GetParts(user.Email)
 	if err != nil {
-    if !errors.As(err, &database.UserError{}) {
-      log.Printf("error getting parts for %s: %v", user.Email, err)
-      err = serverErr
-    }
+		if !errors.As(err, &database.UserError{}) {
+			log.Printf("error getting parts for %s: %v", user.Email, err)
+			err = serverErr
+		}
 	}
 	return parts, err
 }

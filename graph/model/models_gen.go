@@ -32,13 +32,3 @@ type Part struct {
 	CompletedAt *string `json:"completed_at"`
 	ParentID    *string `json:"parent_id"`
 }
-
-type UpdatePartInput struct {
-	ID          string  `json:"id"`
-	Name        *string `json:"name"`
-	Description *string `json:"description"`
-	// RFC3339 datetime
-	Deadline *string `json:"deadline"`
-	// RFC3339 datetime
-	CompletedAt *string `json:"completed_at"`
-}

@@ -211,8 +211,16 @@ func (db *DB) UpdatePart(email string, idStr string, changes map[string]any) (*m
   return db.lockedGetPart(email, id)
 }
 
+// DeletePart deletes a part and all its children
+func (db *DB) DeletePart(email, idStr string) error {
+  db.mtx.Lock()
+  defer db.mtx.Unlock()
+  _, err := db.db.Exec(``)
+  return nil
+}
+
 // GetPart gets a single part with the given email and id.
-func (db *DB) GetPart(email string, idStr string) (*model.Part, error) {
+func (db *DB) GetPart(email, idStr string) (*model.Part, error) {
   id, err := strconv.ParseInt(idStr, 10, 64)
   if err != nil {
     return nil, ErrPartNotExist

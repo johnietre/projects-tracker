@@ -5,8 +5,6 @@ go 1.19
 require (
 	github.com/99designs/gqlgen v0.17.25
 	github.com/golang-jwt/jwt/v5 v5.0.0-rc.1
-	github.com/google/uuid v1.3.0
-	github.com/johnietre/go-jmux v0.0.0-20230216070450-a303ece5c062
 	github.com/mattn/go-sqlite3 v1.14.16
 	github.com/vektah/gqlparser/v2 v2.5.1
 	golang.org/x/crypto v0.6.0

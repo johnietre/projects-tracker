@@ -9,16 +9,6 @@ type Part {
   parent_id: ID
 }
 
-input CreatePartInput {
-  name: String!
-  description: String
-  "RFC3339 datetime"
-  deadline: String
-  "RFC3339 datetime"
-  completed_at: String
-  parent_id: ID
-}
-
 input CreateUserInput {
   email: String!
   password: String!
@@ -27,6 +17,16 @@ input CreateUserInput {
 input LoginUserInput {
   email: String!
   password: String!
+}
+
+input CreatePartInput {
+  name: String!
+  description: String
+  "RFC3339 datetime"
+  deadline: String
+  "RFC3339 datetime"
+  completed_at: String
+  parent_id: ID
 }
 
 type Query {
@@ -40,4 +40,6 @@ type Mutation {
   loginUser(input: LoginUserInput!): String!
   createPart(input: CreatePartInput!): Part!
   updatePart(id: ID!, changes: Map!): Part!
+  "Returns true if the part was deleted, false"
+  deletePart(id: ID!): Boolean!
 }
