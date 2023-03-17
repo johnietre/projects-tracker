@@ -38,8 +38,9 @@ scalar Map
 type Mutation {
   createUser(input: CreateUserInput!): String!
   loginUser(input: LoginUserInput!): String!
+  logoutUser: Boolean!
   createPart(input: CreatePartInput!): Part!
-  updatePart(id: ID!, changes: Map!): Part!
-  "Returns true if the part was deleted, false"
-  deletePart(id: ID!): Boolean!
+  updatePart(id: ID!, changes: Map): Part!
+  "Returns the ID of the deleted part (or an error)"
+  deletePart(id: ID!): ID!
 }

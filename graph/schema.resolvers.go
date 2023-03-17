@@ -7,7 +7,6 @@ package graph
 import (
 	"context"
 	"errors"
-	"fmt"
 	"log"
 
 	"github.com/johnietre/projects-tracker/auth"
@@ -23,12 +22,14 @@ func (r *mutationResolver) CreateUser(ctx context.Context, input model.CreateUse
 			log.Printf("error creating user for %s: %v", input.Email, err)
 			err = serverErr
 		}
+		return "", err
 	}
 	token, err := auth.GenerateToken(user.Email)
 	if err != nil {
-		log.Printf("error generating token for %s: %v", user.Email)
-		return "1", serverErr
+		log.Printf("error generating token for %s: %v", user.Email, err)
+		return "", serverErr
 	}
+	auth.AddCookieToContext(ctx, token)
 	return token, nil
 }
 
@@ -40,36 +41,49 @@ func (r *mutationResolver) LoginUser(ctx context.Context, input model.LoginUserI
 			log.Printf("error logging user for %s: %v", input.Email, err)
 			err = serverErr
 		}
+		return "", nil
 	}
 	token, err := auth.GenerateToken(user.Email)
 	if err != nil {
-		log.Printf("error generating token for %s: %v", user.Email)
-		return "1", serverErr
+		log.Printf("error generating token for %s: %v", user.Email, err)
+		return "", serverErr
 	}
+	auth.AddCookieToContext(ctx, token)
 	return token, nil
+}
+
+// LogoutUser is the resolver for the logoutUser field.
+func (r *mutationResolver) LogoutUser(ctx context.Context) (bool, error) {
+	if !auth.RemoveCookieFromContext(ctx) {
+		log.Printf("error removing cookie from context")
+		return false, serverErr
+	}
+	return true, nil
 }
 
 // CreatePart is the resolver for the createPart field.
 func (r *mutationResolver) CreatePart(ctx context.Context, input model.CreatePartInput) (*model.Part, error) {
 	user, ok := auth.UserFromContext(ctx)
 	if !ok {
-		return nil, fmt.Errorf("Access deined")
+		return nil, ErrAccess
 	}
 	part, err := r.db.CreatePart(user.Email, input)
 	if err != nil {
 		if !errors.As(err, &database.UserError{}) {
-			log.Printf("error creating part for %s (input: %s): %v", user.Email, input, err)
-			return nil, serverErr
+			log.Printf("error creating part for %s (input: %v): %v", user.Email, input, err)
+			err = serverErr
 		}
+		// TODO: Do I NEED to return something on error?
+		part = &model.Part{}
 	}
-	return part, nil
+	return part, err
 }
 
 // UpdatePart is the resolver for the updatePart field.
 func (r *mutationResolver) UpdatePart(ctx context.Context, id string, changes map[string]interface{}) (*model.Part, error) {
 	user, ok := auth.UserFromContext(ctx)
 	if !ok {
-		return nil, fmt.Errorf("Access deined")
+		return nil, ErrAccess
 	}
 	part, err := r.db.UpdatePart(user.Email, id, changes)
 	if err != nil {
@@ -80,36 +94,37 @@ func (r *mutationResolver) UpdatePart(ctx context.Context, id string, changes ma
 			)
 			err = serverErr
 		}
-		return nil, err
+		// TODO: Do I NEED to return something on error?
+		return &model.Part{}, err
 	}
 	return part, nil
-	return nil, nil
 }
 
 // DeletePart is the resolver for the deletePart field.
-func (r *mutationResolver) DeletePart(ctx context.Context, id string) (bool, error) {
-  user, ok := auth.UserFromContext(ctx)
-  if !ok {
-    return nil, fmt.Errorf("Access denied")
-  }
-  err := r.db.DeletePart(user.Email, id)
-  if err != nil {
-    if !errors.As(err, &database.UserError{}) {
-      log.Printf(
-        "error deleting part (id: %s) for %s: %v",
-        id, user.Email, err,
-      )
-      err = serverErr
-    }
-  }
-  return err == nil, err
+func (r *mutationResolver) DeletePart(ctx context.Context, id string) (string, error) {
+	user, ok := auth.UserFromContext(ctx)
+	if !ok {
+		return "", ErrAccess
+	}
+	err := r.db.DeletePart(user.Email, id)
+	if err != nil {
+		if !errors.As(err, &database.UserError{}) {
+			log.Printf(
+				"error deleting part (id: %s) for %s: %v",
+				id, user.Email, err,
+			)
+			err = serverErr
+		}
+		return "", err
+	}
+	return id, nil
 }
 
 // Parts is the resolver for the parts field.
 func (r *queryResolver) Parts(ctx context.Context) ([]*model.Part, error) {
 	user, ok := auth.UserFromContext(ctx)
 	if !ok {
-		return nil, fmt.Errorf("Access deined")
+		return nil, ErrAccess
 	}
 	parts, err := r.db.GetParts(user.Email)
 	if err != nil {
@@ -117,6 +132,7 @@ func (r *queryResolver) Parts(ctx context.Context) ([]*model.Part, error) {
 			log.Printf("error getting parts for %s: %v", user.Email, err)
 			err = serverErr
 		}
+		// TODO: Do I NEED to return something on error?
 	}
 	return parts, err
 }
@@ -129,3 +145,11 @@ func (r *Resolver) Query() QueryResolver { return &queryResolver{r} }
 
 type mutationResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
+
+// !!! WARNING !!!
+// The code below was going to be deleted when updating resolvers. It has been copied here so you have
+// one last chance to move it out of harms way if you want. There are two reasons this happens:
+//   - When renaming or deleting a resolver the old code will be put in here. You can safely delete
+//     it when you're done.
+//   - You have helper methods in this file. Move them out to keep these resolver files clean.
+var ErrAccess = errors.New("Access denied")

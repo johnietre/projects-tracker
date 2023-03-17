@@ -49,6 +49,7 @@ type ComplexityRoot struct {
 		CreateUser func(childComplexity int, input model.CreateUserInput) int
 		DeletePart func(childComplexity int, id string) int
 		LoginUser  func(childComplexity int, input model.LoginUserInput) int
+		LogoutUser func(childComplexity int) int
 		UpdatePart func(childComplexity int, id string, changes map[string]interface{}) int
 	}
 
@@ -69,9 +70,10 @@ type ComplexityRoot struct {
 type MutationResolver interface {
 	CreateUser(ctx context.Context, input model.CreateUserInput) (string, error)
 	LoginUser(ctx context.Context, input model.LoginUserInput) (string, error)
+	LogoutUser(ctx context.Context) (bool, error)
 	CreatePart(ctx context.Context, input model.CreatePartInput) (*model.Part, error)
 	UpdatePart(ctx context.Context, id string, changes map[string]interface{}) (*model.Part, error)
-	DeletePart(ctx context.Context, id string) (bool, error)
+	DeletePart(ctx context.Context, id string) (string, error)
 }
 type QueryResolver interface {
 	Parts(ctx context.Context) ([]*model.Part, error)
@@ -139,6 +141,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.LoginUser(childComplexity, args["input"].(model.LoginUserInput)), true
+
+	case "Mutation.logoutUser":
+		if e.complexity.Mutation.LogoutUser == nil {
+			break
+		}
+
+		return e.complexity.Mutation.LogoutUser(childComplexity), true
 
 	case "Mutation.updatePart":
 		if e.complexity.Mutation.UpdatePart == nil {
@@ -366,7 +375,7 @@ func (ec *executionContext) field_Mutation_updatePart_args(ctx context.Context, 
 	var arg1 map[string]interface{}
 	if tmp, ok := rawArgs["changes"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("changes"))
-		arg1, err = ec.unmarshalNMap2map(ctx, tmp)
+		arg1, err = ec.unmarshalOMap2map(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -536,6 +545,49 @@ func (ec *executionContext) fieldContext_Mutation_loginUser(ctx context.Context,
 	return fc, nil
 }
 
+func (ec *executionContext) _Mutation_logoutUser(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_logoutUser(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().LogoutUser(rctx)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_logoutUser(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Mutation_createPart(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Mutation_createPart(ctx, field)
 	if err != nil {
@@ -697,9 +749,9 @@ func (ec *executionContext) _Mutation_deletePart(ctx context.Context, field grap
 		}
 		return graphql.Null
 	}
-	res := resTmp.(bool)
+	res := resTmp.(string)
 	fc.Result = res
-	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+	return ec.marshalNID2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_deletePart(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -709,7 +761,7 @@ func (ec *executionContext) fieldContext_Mutation_deletePart(ctx context.Context
 		IsMethod:   true,
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Boolean does not have child fields")
+			return nil, errors.New("field of type ID does not have child fields")
 		},
 	}
 	defer func() {
@@ -3105,6 +3157,12 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 				return ec._Mutation_loginUser(ctx, field)
 			})
 
+		case "logoutUser":
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_logoutUser(ctx, field)
+			})
+
 		case "createPart":
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
@@ -3603,27 +3661,6 @@ func (ec *executionContext) unmarshalNLoginUserInput2githubᚗcomᚋjohnietreᚋ
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNMap2map(ctx context.Context, v interface{}) (map[string]interface{}, error) {
-	res, err := graphql.UnmarshalMap(v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) marshalNMap2map(ctx context.Context, sel ast.SelectionSet, v map[string]interface{}) graphql.Marshaler {
-	if v == nil {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
-		}
-		return graphql.Null
-	}
-	res := graphql.MarshalMap(v)
-	if res == graphql.Null {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
-		}
-	}
-	return res
-}
-
 func (ec *executionContext) marshalNPart2githubᚗcomᚋjohnietreᚋprojectsᚑtrackerᚋgraphᚋmodelᚐPart(ctx context.Context, sel ast.SelectionSet, v model.Part) graphql.Marshaler {
 	return ec._Part(ctx, sel, &v)
 }
@@ -3989,6 +4026,22 @@ func (ec *executionContext) marshalOID2ᚖstring(ctx context.Context, sel ast.Se
 		return graphql.Null
 	}
 	res := graphql.MarshalID(*v)
+	return res
+}
+
+func (ec *executionContext) unmarshalOMap2map(ctx context.Context, v interface{}) (map[string]interface{}, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := graphql.UnmarshalMap(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOMap2map(ctx context.Context, sel ast.SelectionSet, v map[string]interface{}) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	res := graphql.MarshalMap(v)
 	return res
 }
 

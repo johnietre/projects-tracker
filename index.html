@@ -10,6 +10,113 @@
     import init from "/pkg/projects_tracker.js";
     await init();
   </script>
+  <style>
+    #app {
+      margin: 0;
+      padding: 0;
+    }
+
+    #login-register-div {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+    }
+
+    #login-register-div input {
+      font-size: 20px;
+      text-align: center;
+      margin: 2px;
+      padding: 2px;
+    }
+
+    #logreg-button-div {
+      margin: 2px auto;
+    }
+
+    /*#login-register-div input[type=submit] {*/
+    #login-register-div button {
+      width: 50%;
+      font-size: 15px;
+      margin: auto;
+      padding: 2px;
+    }
+
+    #top-controls-div>* {
+      margin: 2px;
+    }
+
+    #part-popup-div {
+      display: none;
+      position: fixed;
+      bottom: 0;
+      right: 5px;
+      border: 3px solid black;
+      z-index: 9;
+    }
+
+    #part-form {
+      /* max-width: 600px; */
+      padding: 10px;
+    }
+
+    #part-form>* {
+      display: block;
+      width: 100%;
+    }
+
+    #part-form input,
+    #part-form textarea {
+      margin: 5px 0 10px 0;
+      padding: 2px;
+      border: none;
+      background: #f1f1f1;
+    }
+
+    #part-form textarea {
+      resize: none;
+    }
+
+    #projects-div>.parts-list {
+      padding: 0;
+    }
+
+    #filter-dropdown-div {
+      position: absolute;
+      background-color: #f1f1f1;
+      z-index: 1;
+    }
+
+    #filter-dropdown-div a {
+      display: block;
+    }
+
+    #err-msg-p {
+      color: red;
+      text-align: center;
+    }
+
+    #logout-button {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+    }
+
+    .parts-list {
+      list-style: none;
+    }
+
+    .part>button {
+      /* TODO: Fix vertical margins */
+      margin: 2px;
+    }
+
+    .delete-button {
+      color: red;
+      font-weight: bold;
+      margin: 20px;
+    }
+  </style>
 </head>
 
 <body>

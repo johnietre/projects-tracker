@@ -10,7 +10,10 @@ crate-type = ["cdylib"]
 path = "client/lib.rs"
 
 [dependencies]
+anyhow = "*"
+chrono = "0.4"
 console_error_panic_hook = "*"
+either = "*"
 graphql_client = { path = "./client/graphql-client/graphql_client", features = ["reqwest"] }
 futures = "0.3"
 js-sys = "0.3.61"
@@ -20,3 +23,13 @@ tracing-wasm = "*"
 wasm-bindgen = "^0.2"
 wasm-bindgen-futures = "^0.4.34"
 yew = { version = "0.20.0", features = ["csr"] }
+
+[dependencies.web-sys]
+version = "0.3.61"
+features = [
+  "HtmlButtonElement",
+  "HtmlFormElement",
+  "HtmlInputElement",
+  "HtmlSelectElement",
+  "HtmlTextAreaElement",
+]

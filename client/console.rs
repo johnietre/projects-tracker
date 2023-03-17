@@ -18,5 +18,5 @@ macro_rules! error {
     ($($t:tt)*) => (crate::console::js_error(&format_args!($($t)*).to_string()))
 }
 
-pub use log;
 pub use error;
+pub use log;

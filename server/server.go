@@ -1,7 +1,7 @@
 package main
 
 import (
-  "flag"
+	"flag"
 	"log"
 	"net/http"
 
@@ -12,24 +12,28 @@ import (
 )
 
 func main() {
-  log.SetFlags(0)
+	log.SetFlags(0)
 
-  addr := flag.String("addr", "localhost:8000", "Address to run on")
-  dbPath := flag.String("db", "", "Path to database")
-  flag.Parse()
+	addr := flag.String("addr", "localhost:8000", "Address to run on")
+	dbPath := flag.String("db", "", "Path to database")
+	flag.Parse()
 
-	//srv := handler.NewDefaultServer(graph.NewExecutableSchema(graph.Config{Resolvers: &graph.Resolver{}}))
-  config, closeFunc, err := graph.NewConfig(*dbPath)
-  if err != nil {
-    log.Fatal(err)
-  }
-  defer closeFunc()
+	if *dbPath == "" {
+		log.Fatal("must provide database path")
+	}
+
+	config, closeFunc, err := graph.NewConfig(*dbPath)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer closeFunc()
 	srv := handler.NewDefaultServer(graph.NewExecutableSchema(config))
 
-  http.Handle("/", http.FileServer(http.Dir(".")))
+	http.Handle("/", http.FileServer(http.Dir(".")))
 	http.Handle("/playground", playground.Handler("GraphQL playground", "/query"))
 	http.Handle("/query", auth.Middleware(srv))
 
-	log.Printf("connect to http://%s/playground for GraphQL playground", *addr)
+	//log.Printf("connect to http://%s/playground for GraphQL playground", *addr)
+	log.Println("Running on", *addr)
 	log.Fatal(http.ListenAndServe(*addr, nil))
 }

@@ -6,16 +6,32 @@ mutation LoginUserMutation($input: LoginUserInput!) {
   loginUser(input: $input)
 }
 
+mutation LogoutUserMutation {
+  logoutUser
+}
+
 mutation CreatePartMutation($input: CreatePartInput!) {
   createPart(input: $input) {
     id
     name
+    description
+    deadline
+    completed_at
+    parent_id
   }
 }
 
-mutation UpdatePartMutation($input: Map!) {
-  updatePart(input: $input) {
+mutation UpdatePartMutation($id: ID!, $changes: Map!) {
+  updatePart(id: $id, changes: $changes) {
     id
     name
+    description
+    deadline
+    completed_at
+    parent_id
   }
+}
+
+mutation DeletePartMutation($id: ID!) {
+  deletePart(id: $id)
 }
