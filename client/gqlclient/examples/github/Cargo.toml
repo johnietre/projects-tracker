@@ -1,0 +1,15 @@
+[package]
+name = "graphql_query_github_example"
+version = "0.1.0"
+authors = ["Tom Houlé <tom@tomhoule.com>"]
+edition = "2018"
+
+[dev-dependencies]
+anyhow = "1.0"
+graphql_client = { path = "../../graphql_client", features = ["reqwest-blocking"] }
+serde = "^1.0"
+reqwest = { version = "^0.11", features = ["json", "blocking"] }
+prettytable-rs = "^0.7"
+clap = { version = "^3.0", features = ["derive"] }
+log = "^0.4"
+env_logger = "^0.5"

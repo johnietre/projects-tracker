@@ -1,0 +1,74 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  schedule:
+    - cron:  '0 2 * * *'
+
+jobs:
+  test:
+    strategy:
+      matrix:
+        rust: ["stable", "beta", "nightly"]
+        os: [ubuntu-18.04, macos-latest]
+    name: Cargo test
+    runs-on: ${{ matrix.os }}
+    steps:
+    - name: Checkout sources
+      uses: actions/checkout@v2
+    - name: Install toolchain
+      uses: actions-rs/toolchain@v1
+      with:
+        profile: minimal
+        toolchain: ${{ matrix.rust }}
+        override: true
+    - name: Execute cargo test
+      run: cargo test --all --tests --examples
+  wasm_build:
+    name: Cargo build for wasm
+    runs-on: ubuntu-18.04
+    steps:
+    - name: Checkout sources
+      uses: actions/checkout@v2
+    - name: Install toolchain
+      uses: actions-rs/toolchain@v1
+      with:
+        profile: minimal
+        toolchain: stable
+        override: true
+        target: wasm32-unknown-unknown
+    - name: Execute cargo build
+      run: |
+        cargo build --manifest-path=./graphql_client/Cargo.toml --features="reqwest" --target wasm32-unknown-unknown
+  lint:
+    name: Rustfmt and Clippy
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout sources
+      uses: actions/checkout@v2
+    - name: Install toolchain
+      uses: actions-rs/toolchain@v1
+      with:
+        profile: minimal
+        toolchain: stable
+        override: true
+        components: clippy,rustfmt
+    - name: Execute cargo fmt
+      run: cargo fmt --all -- --check
+    - name: Execute cargo clippy
+      run: cargo clippy --tests --examples -- -D warnings
+  prettier:
+    name: Check prettier
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout sources
+      uses: actions/checkout@v2
+    - name: Install node.js
+      run: sudo apt update && sudo apt-get install -y nodejs
+    - name: Execute prettier
+      run: npx prettier --debug-check -l './**/*.json' './**/*.graphql'
