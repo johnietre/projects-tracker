@@ -1,7 +1,9 @@
-.PHONY: generate server web
+.PHONY: all generate server web
 
 generate: graph/*.graphql
 	go generate ./...
+
+all: server web
 
 server:
 	go build -o bin/server server/server.go
