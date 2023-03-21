@@ -214,7 +214,7 @@ func (db *DB) UpdatePart(email string, idStr string, changes map[string]any) (*m
 	if err != nil {
 		return nil, ErrPartNotExist
 	}
-	setStr, vals := "", make([]any, 0, len(changes))
+  fields, vals := make([]string, 0, len(changes)), make([]any, 0, len(changes))
 	for fieldName, iVal := range changes {
 		valStr, ok := iVal.(string)
 		if !ok {
@@ -226,34 +226,32 @@ func (db *DB) UpdatePart(email string, idStr string, changes map[string]any) (*m
 			if strings.TrimSpace(valStr) == "" {
 				return nil, userInputError("must provide a name if changing")
 			}
-			setStr += " name=?"
-			val = valStr
+			val, fields = valStr, append(fields, "name=?")
 		case "description":
-			setStr += " description=?"
 			if valStr == "" {
 				val = (*string)(nil)
 			} else {
 				val = &valStr
 			}
+      fields = append(fields, "description=?")
 		case "deadline":
 			ptr, err := getTimePtr(&valStr)
-			if err != nil {
-				return nil, ErrInvalidTime
+      if err != nil {
+        return nil, ErrInvalidTime
 			}
-			val = ptr
-			setStr += " deadline=?"
+			val, fields = ptr, append(fields, "deadline=?")
 		case "completed_at":
 			ptr, err := getTimePtr(&valStr)
 			if err != nil {
 				return nil, ErrInvalidTime
 			}
-			val = ptr
-			setStr += " completed_at=?"
+			val, fields = ptr, append(fields, "completed_at=?")
 		default:
 			return nil, userInputError(fmt.Sprintf("invalid field: %s", fieldName))
 		}
 		vals = append(vals, val)
 	}
+  setStr := strings.Join(fields, ",")
 
 	db.mtx.Lock()
 	defer db.mtx.Unlock()
@@ -309,7 +307,7 @@ func (db *DB) lockedGetPart(email string, id int64) (*model.Part, error) {
 			email, id,
 		),
 	)
-	dbPart := &DBPart{}
+  dbPart := &DBPart{ID: id}
 	err := row.Scan(&dbPart.Name, &dbPart.Description, &dbPart.Deadline, &dbPart.CompletedAt, &dbPart.ParentID)
 	if err != nil {
 		return nil, err

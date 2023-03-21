@@ -462,7 +462,6 @@ impl Component for App {
                             console::log!("Part already exists: {:?}", part);
                             self.error_msg = String::from("Part already exists???");
                         }
-                        console::log!("Projects: {:?}", self.pm().projects);
                     }
                     Err(e) => {
                         if err_is_access(e.as_ref()) {
