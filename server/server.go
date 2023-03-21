@@ -4,6 +4,7 @@ import (
 	"flag"
 	"log"
 	"net/http"
+  "os"
 
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/playground"
@@ -16,11 +17,20 @@ func main() {
 
 	addr := flag.String("addr", "localhost:8000", "Address to run on")
 	dbPath := flag.String("db", "", "Path to database")
+  logPath := flag.String("log", "", "Path to log file")
 	flag.Parse()
 
 	if *dbPath == "" {
 		log.Fatal("must provide database path")
 	}
+
+  if *logPath != "" {
+    f, err := os.OpenFile(*logPath, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0644)
+    if err != nil {
+      log.Fatalln("error opening log file:", err)
+    }
+    log.SetOutput(f)
+  }
 
 	config, closeFunc, err := graph.NewConfig(*dbPath)
 	if err != nil {
