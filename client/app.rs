@@ -907,7 +907,9 @@ impl Component for PartComponent {
                 <button onclick={show_details}>{ "Details" }</button>
                 <button onclick={toggle_creating}>{ "New Part" }</button>
                 if children.len() != 0 {
-                    <button onclick={show_children}>{ "Show Children" }</button>
+                    <button onclick={show_children}>{ 
+                        if self.hide_children { "Show Children" } else { "Hide Children" }
+                    }</button>
                 }
 
                 { self.render_details(ctx, part) }
